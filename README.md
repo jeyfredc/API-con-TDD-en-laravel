@@ -356,3 +356,43 @@ ubicar nuevamente la carpeta **Homestead** y ejecutar
 despues de cargar todas las dependencias y reconozca el host ya deberia aparecer una pagina como la siguiente 
 
 ![assets/13.png](assets/13.png)
+
+Ahora lo que hay que hacer es abrir el folder ciclo en el editor de codigo de preferencia y alli se va a poder ver que hay varios folders creados y archivos
+
+![assets/14.png](assets/14.png)
+
+Dentro del folder public esta la configuracion de inicio del proyecto en el archivo **index.php** donde esta `require __DIR__.'/../vendor/autoload.php';` que es donde se cargan todas las clase de php.
+
+Despues de esto se inicia el framework `$app = require_once __DIR__.'/../bootstrap/app.php';` y por ultimo el sistema empieza a aceptar cualquier solicitud `$kernel = $app->make(Kernel::class);`
+
+Luego existe otra carpeta que se llama **routes** donde estan las configuraciones de rutas , por ejemplo esta **web.php** que es la primer pagina que esta cargando el navegador de bienvenida
+
+```
+Route::get('/', function () {
+    return view('welcome');
+});
+```
+
+Lo que significa es que cuando llega a la raiz **'/'** va a mostrar a **welcome**, este welcome se puede editar y retornar por ejemplo `Hola Mundo!`
+
+```
+Route::get('/', function () {
+    return 'Hola Mundo!';
+});
+```
+
+![assets/15.png](assets/15.png)
+
+la vista welcome que anteriormente estaba trayendo se encuentra dentro del folder **resources/views/welcome.blade.php** que es la vista que muestra en un inicio la aplicacion, si se quita algo de alli tambien se va a ver reflejado por ejemplo 
+
+se puede dejar la ruta para cargar la vista nuevamente 
+
+```
+Route::get('/', function () {
+    return view('welcome');
+});
+```
+
+y ahora modificar algo en el archivo **welcome.blade.php**, en el caso se quito laracast, solo para mostrar como se ve si se modifica algo en la vista
+
+![assets/17.png](assets/17.png)
