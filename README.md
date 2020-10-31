@@ -6,7 +6,7 @@
 
 [Clase 3 Entendiendo el ciclo de vida de las solicitudes web](#Clase-3-Entendiendo-el-ciclo-de-vida-de-las-solicitudes-web)
 
-[]()
+[Clase 4 Qué es un CRUD y cómo implementarlo](#Clase-4-Qué-es-un-CRUD-y-cómo-implementarlo)
 
 []()
 
@@ -396,3 +396,185 @@ Route::get('/', function () {
 y ahora modificar algo en el archivo **welcome.blade.php**, en el caso se quito laracast, solo para mostrar como se ve si se modifica algo en la vista
 
 ![assets/17.png](assets/17.png)
+
+## Clase 4 Qué es un CRUD y cómo implementarlo
+
+CRUD(Create, Read, Update, Delete), esto es lo que se requiere para utilizar una base de datos, es decir crear, leer, actualizar y eliminar.
+
+El folder **config** tiene un archivo llamado **database.php** donde estan las configuraciones de las bases de datos.
+
+Es muy importante tener instalado [mysql workbench](https://dev.mysql.com/downloads/workbench/)
+
+En mysql workbeanch para iniciar como usuario se debe establecer un root y alli crear el schema crud
+
+Para esto en mysql hay que crear una base de datos que se llame **crud**, luego en el archivo **.env** cambiar la base de datos que por defecto dice ciclo o laravel por `DB_DATABASE=crud`.
+
+El folder **database/migrations** trae varios modelos para crear en la base de datos.
+
+pero el archivo .env es quien ejecuta la configuracion
+
+
+![assets/18.png](assets/18.png)
+
+a continuacion abrir la terminal ubicarse en el folder ciclo y ejecutar el comando `php artisan migrate`
+
+![assets/19.png](assets/19.png)
+
+en caso de que arroje el siguiente error 
+
+```
+   Illuminate\Database\QueryException 
+
+  could not find driver (SQL: select * from information_schema.tables where table_schema = crud and table_name = migrations and table_type = 'BASE TABLE')
+
+  at vendor/laravel/framework/src/Illuminate/Database/Connection.php:671
+    667▕         // If an exception occurs when attempting to run a query, we'll format the error
+    668▕         // message to include the bindings with SQL, which will make this exception a
+    669▕         // lot more helpful to the developer instead of just the database's errors.
+    670▕         catch (Exception $e) {
+  ➜ 671▕             throw new QueryException(
+    672▕                 $query, $this->prepareBindings($bindings), $e
+    673▕             );
+    674▕         }
+    675▕ 
+
+      +34 vendor frames 
+  35  artisan:37
+
+```
+
+Abrir **php.ini** que en el caso de linux se encuentra en la siguiente ruta **/etc/php/7.4/cli/php.ini** abrir el archivo y descomentar quitando el ; en `extension=pdo_mysql` por defecto viene asi ;`;extension=pdo_mysql`
+
+despues de descomentar y guardar ubicarse en la ruta  y ejecutar `php artisan migrate`
+
+![assets/19.png](assets/19.png)
+
+en caso de que salga algun otro error verificar puertos, verificar el archivo **.yaml** de **Homestead** que la base de datos tambien tenga por nombre **crud**
+
+salir de Homestead en la consola y repetir los pasos 
+
+`vagrant up`
+
+luego 
+
+`vagrant reload --provision`
+
+y por ultimo 
+
+`vagrant ssh`
+
+Despues de que la terminal indica que ya fueron creadas las tablas de la base de datos se puede verificar en mysql workbench
+
+![assets/20.png](assets/20.png)
+
+Las tablas vienen con los siguientes campos por defecto (id, name, email, etc)
+
+![assets/21.png](assets/21.png)
+
+todo proyecto siempre trae a usuarios y laravel ya cuenta con este modelo de base de datos es por esto que es tan util hacer uso de las tablas y bases que trae por defecto laravel.
+
+Laravel tambien cuenta con un sistema de rutas el cual esta configurado en el folder **routes** y este por defecto en el archivo que dice web.php trae la ruta `'/'`
+
+![assets/22.png](assets/22.png)
+
+existe un comando que se puede usar en la terminal para traer las rutas 
+
+`php artisan route:list`
+
+![assets/23.png](assets/23.png)
+
+En la terminal se muestran dos rutas una que comienza en `api` y la otra que empieza en raiz `/`
+
+para modificarlo se puede modificar la ruta que se encuentra dentro del archivo **api.php** y como es un ejemplo se puede eliminar este bloque de codigo
+
+```
+Route::middleware('auth:api')->get('/user', function (Request $request) {
+    return $request->user();
+});
+```
+
+y luego comenzar a establecer las rutas en el archivo **web.php**
+
+Lo que se necesita es:
+
+1. Una ruta para visualizar el listado, la ruta raiz `/`
+
+2. Una ruta para crear un usuario 
+
+3. Una ruta que permita eliminar al usuario
+
+Para esto la ruta que esta establecida, es decir esta
+
+```
+Route::get('/', function () {
+    return view('welcome');
+});
+```
+
+Se elimina.
+
+Para configurar el proyecto se requiere que la ruta raiz `/` responda a una accion de un controlador, el controlador se va a llamar `UserController` el cual se pasara a crear despues y se establece `@index` el cual va a responder al metodo del controlador 
+
+`Route::get('/', 'UserController@index');`
+
+**Nota:** Un controlador es un archivo o clase donde se encuentra la logica de lo que va a responder de cuando se llegue a esa ruta 
+
+Ademas se requiere una ruta de tipo post que es la que va a permitir guardar a los usuarios 
+
+la ruta raiz los lista y cuando se presione el formulario guardar se va a ir a la lista de usuarios `Route::get('users',` y luego se utiliza el metodo store que es el que cumplira la funcion de guardar los usuarios `Route::get('users','UserController@store');`, a la ruta se le puede dar un nombre para que sea mas facil setearla, utilizarla en las vistas y se va a llamar `users.store`
+
+`Route::post('users', 'UserController@store')->name('users.store');`
+
+actualmente esta **get** para salvar y **post** para eliminar, la ruta que falta es **delete** para eliminar, en esta se hace la creacion del parametro `{user}`, si existen 10 usuarios se debe saber cual de esos se requiere eliminar, el metodo se llama `destroy` y el nombre ahora se llama `users.destroy`
+
+`Route::delete('users/{users}', 'UserController@destroy')->name('users.destroy');`
+
+ahora ya estan establecidas las rutas
+
+![assets/24.png](assets/24.png)
+
+Ahora hay que pasar a crear los controladores los cuales se encuentran en **app/Http/Controllers/**
+
+php artisan ayuda a crear varios tipos de cosas entre estos, esta el que sirve para crear el controlador, en la terminal ejecutar lo siguiente
+
+`php artisan make:controller UserController`
+
+presionar enter.
+
+y dentro de la ruta de los controladores se puede verificar que haya quedado creado.
+
+Luego de esto abrir el archivo UserController.php y construir los metodos establecidos en las rutas
+
+```
+    public function index()
+    {
+
+    }
+
+    public function store()
+    {
+        
+    }
+
+    public function destroy()
+    {
+        
+    }
+```
+
+el controlador queda asi 
+
+![assets/25.png](assets/25.png)
+
+De esta forma en la terminal se pueden mostrar las rutas con `php artisan route:list`
+
+en caso de que no salgan lo que se debe hacer es agregar la ruta completa a los metodos establecidos en **web.php** es decir 
+
+agregar lo siguiente antes del controlador `App\Http\Controllers\`
+
+![assets/26.png](assets/26.png)
+
+y nuevamente en la terminal ejecutar `php artisan route:list`, de esta forma se muestran las rutas 
+
+![assets/27.png](assets/27.png)
+
