@@ -657,5 +657,100 @@ Por el momento el archivo **UserController.php** va asi
 
 ___
 
-Actualmente la unica vista creada es index.blade.php, si se recarga en el navegador ciclo.test la pagina va a aparece en blanco porque no se ha establecido aun algun tipo de configuracion
+Actualmente la unica vista creada es **index.blade.php**, si se recarga en el navegador ciclo.test la pagina va a aparecer en blanco porque no se ha establecido aun algun tipo de configuracion
 
+si llega a salir un error ejecutar php artisan serve y dirigir a la ruta que establezca el navegador, ciclo.test se estaba ejecutando el **localhost:8000** pero en esta ruta en mi caso particular no cargo asi que la estoy trabajando en **localhost:8001**
+
+En el archivo **index.blade.php** copiar lo siguiente 
+
+```
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>Laravel</title>
+
+        <!-- Fonts -->
+        <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+    </head>
+    <body>
+        <div class="container">
+        <div class="row">
+            <div class="col-sm-8 mx-auto">
+                <table class="table">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>&nbsp;</th>
+                </tr>
+                </thead>
+                <tbody>
+                    @foreach($users as $user)
+                    <tr>
+                        <td>{{ $user->id }}</td>
+                        <td>{{ $user->name }}</td>
+                        <td>{{ $user->email }}</td>
+                        <td>Eliminar</td>     
+                    </tr>
+                    @endforeach()
+                </tbody>
+                </table>
+            </div>
+        </div>
+        </div>
+    </body>
+</html>
+```
+
+**Nota:** verificar la estructura y codigo del archivo para entender mejor
+
+Al cargar la pagina notar que de momento se encuentra vacia la tabla creada
+
+
+![assets/29.png](assets/29.png)
+
+y esto es porque la tabla de usuarios en workbench tambien se encuentra vacia
+
+para empezar a crear los usuarios, utilizar en la terminal `php artisan tinker` que basicamente es como un shell de php
+
+y luego escribir 
+
+`User::factory()->count(12)->create();`
+
+despues de ejecutar esta sentencia se van a crear automaticamente 12 usuarios 
+
+![assets/30.png](assets/30.png)
+
+Despues se puede comprobar en el navegador que esten creados
+
+![assets/31.png](assets/31.png)
+
+ahora para que se puedan eliminar usuarios en la base de datos, en el archivo **index.blade.destroy** modificar esta linea de codigo `<td>Eliminar</td>` por 
+
+```
+                        <td>
+                            <form action="{{ route('users.destroy', $user) }}" method="POST">
+                                @method('DELETE')
+                                @csrf
+                                <input 
+                                type="submit" 
+                                value="Eliminar" 
+                                class="btn btn-sm btn-danger"
+                                onclick="return confirm('¿Desea eliminar... ?')">
+                            </form>
+                        </td> 
+```
+
+Este contiene un form que ubica la ruta que iene el metodo destroy, tiene el parametro del usuario a buscar y todo formulario que se va a enviar se debe hacer mediante `POST` y dentro de estos contiene un metodo DELETE `@method('DELETE')`, el metodo que esta utilizando laravel es POST pero el metodo interno que esta esperando es DELETE el cual es el metodo confiurado en la ruta delete.
+
+`@csrf` genera en el formulario un token que lo que hace es decirle a laravel que el formulario pertenece al proyecto y no es un formulario externo 
+
+y por ultimo va un boton con clases bootstrap y luego se configura la accion al hacer click sobre el boton eliminar el cual pide a su vez una confirmacion de seguridad y la plantilla se carga de esta forma
+
+![assets/32.png](assets/32.png)
