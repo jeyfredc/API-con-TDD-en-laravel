@@ -8,7 +8,7 @@
 
 [Clase 4 Qué es un CRUD y cómo implementarlo](#Clase-4-Qué-es-un-CRUD-y-cómo-implementarlo)
 
-[]()
+[Clase 5 Lógica de controladores y vistas con datos de prueba](#Clase-5-Lógica-de-controladores-y-vistas-con-datos-de-prueba)
 
 []()
 
@@ -577,4 +577,85 @@ agregar lo siguiente antes del controlador `App\Http\Controllers\`
 y nuevamente en la terminal ejecutar `php artisan route:list`, de esta forma se muestran las rutas 
 
 ![assets/27.png](assets/27.png)
+
+## Clase 5 Lógica de controladores y vistas con datos de prueba
+
+Ya esta creado el controlador pero hace falta la logica de cada uno de los metodos creados 
+
+En el metodo index debe tener disponible a todos los usuarios, para eso se crea la variable `$users`, luego se rtrae `User` el cual es un modelo que proporciona laravel y que se encuentra en **app/Models/User.php** despues de esto se trae el metodo `::latest()` para traer a todos los usuarios de la base de datos y por ultimo se utiliza `->get();` para obtener
+
+```
+public function index()
+    {
+        $users = User::latest()->get();
+    }
+```
+
+Para poder hacer uso de `User` se debe importar utilizando `use App\Models\User;`
+
+ahora dentro del metodo index se va a regresar la vista utilizando `return view('users.index',)` **users.index** es el nombre de la carpeta donde van a estar las vistas y `index` es el nombre de la vista. luego se establece un array utilizando la llave 'users' y luego se coloca lo que se establecio en la variable de usuarios `['users' => $users]`
+
+```
+    public function index()
+    {
+        $users = User::latest()->get();
+
+        return view('users.index', [
+            'users' => $users
+        ]);
+    }
+```
+
+los pasos establecidos serian asi
+
+1. Se consultan los datos
+
+2. Se carga la vista 
+
+3. Pasar los datos 
+
+La vista creada va a estar ubicada en la carpeta **resources/views** dentro de esta crear **users** y luego crear el archivo **index.blade.php**, la ruta queda asi **resources/views/users/index.blade.php**
+___
+Continuando con los metodos del controlador ahora se va a crear la logica del metodo `store` que es el que se va a encargar de trabajar con los datos para esto se utiliza Request y se establece como variable en el metodo `public function store(Request $request)`, **Request hace solicitudes**.
+
+luego se trae a `User` que es el archivo que representa la tabla de usuarios y se establece el metodo create `User::create();`
+
+dentro de los parametros de create se agrega un array que es el que va a tener toda la logica necesaria
+
+para esto se colocan los nombres de la tabla de usuarios creada y con el metodo request hace la solicitud de cada uno de los campos de esta forma y luego regresa la vista anterior.
+
+La logica del metodo es crear un usuario con los campos name, email y password y despues de crear regresar a la vista anterior
+
+```
+    public function store(Request $request)
+    {
+        User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => $request->password,
+        ]):
+
+        return back();
+    }
+```
+___
+
+Continuando, ahora se configura el metodo `destroy` el cual recibe como parametro al Usuario con la variable $users que fue la variable encargada de obtener los datos, se establece el metodo `delete` y por ultimo regresa a la vista anterior con la siguiente logica
+
+```
+    public function destroy(User $user)
+    {
+        $user->delete();
+
+        return back();
+    }
+```
+
+Por el momento el archivo **UserController.php** va asi
+
+![assets/28.png](assets/28.png)
+
+___
+
+Actualmente la unica vista creada es index.blade.php, si se recarga en el navegador ciclo.test la pagina va a aparece en blanco porque no se ha establecido aun algun tipo de configuracion
 
