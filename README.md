@@ -10,7 +10,7 @@
 
 [Clase 5 Lógica de controladores y vistas con datos de prueba](#Clase-5-Lógica-de-controladores-y-vistas-con-datos-de-prueba)
 
-[]()
+[Clase 6 Creando un formulario](#Clase-6-Creando-un-formulario)
 
 []()
 
@@ -754,3 +754,262 @@ Este contiene un form que ubica la ruta que iene el metodo destroy, tiene el par
 y por ultimo va un boton con clases bootstrap y luego se configura la accion al hacer click sobre el boton eliminar el cual pide a su vez una confirmacion de seguridad y la plantilla se carga de esta forma
 
 ![assets/32.png](assets/32.png)
+
+## Clase 6 Creando un formulario
+
+
+El formulario que a continuacion se va a crear es para la creacion de un usuario en la base de datos.
+
+Dentro de la plantilla **index.blade.php** se va a establecer lo siguiente
+
+```
+                <div class="card">
+                    <form action="{{ route('users.store') }}" method="POST" >
+                        <div class="form-row">
+                            <div class="col-sm-3">
+                                <input type="text" name="name" class="form-control" placeholder="Nombre" >
+                            </div>
+                        </div>
+                    </form>
+                </div>
+```                
+
+![assets/33.png](assets/33.png)
+
+y de esta forma la pagina que se esta construyendo va a estar cambiando a medida que se vayan agregando codigo html y funcionalidad mediante logica 
+
+![assets/34.png](assets/34.png)
+
+y posteriormente se agrega el codigo a continuacion 
+
+```
+                <div class="card">
+                    <form action="{{ route('users.store') }}" method="POST" >
+                        <div class="form-row">
+                            <div class="col-sm-3">
+                                <input type="text" name="name" class="form-control" placeholder="Nombre" >
+                            </div>
+                            <div class="col-sm-4">
+                                <input type="text" name="email" class="form-control" placeholder="Email" >
+                            </div>
+                            <div class="col-sm-3">
+                                <input type="password" name="password" class="form-control" placeholder="Contraseña" >
+                            </div>
+                            <div class="col-auto">
+                                @csrf
+                                <button type="submit" class="btn btn-primary">Enviar</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+```
+
+De esta forma el CRUD va quedando de esta forma, la cual ya permite crear un usuario, con su email y tambien eliminarlo
+
+![assets/35.png](assets/35.png)
+
+![assets/36.png](assets/36.png)
+
+Sin embargo con el apoyo del framework Bootstrap se puede dar una configuracion de visualizacion para que se vea mucho mejor esta plantilla, trabajando sobre el mismo bloque de codigo y agregandole varios efectos como los que se pueden apreciar
+
+```
+                <div class="card border-0 shadow">
+                    <div class="card-body">
+                        <form action="{{ route('users.store') }}" method="POST" >
+                            <div class="form-row">
+                                <div class="col-sm-3">
+                                    <input type="text" name="name" class="form-control" placeholder="Nombre" >
+                                </div>
+                                <div class="col-sm-4">
+                                    <input type="text" name="email" class="form-control" placeholder="Email" >
+                                </div>
+                                <div class="col-sm-3">
+                                    <input type="password" name="password" class="form-control" placeholder="Contraseña" >
+                                </div>
+                                <div class="col-auto">
+                                    @csrf
+                                    <button type="submit" class="btn btn-primary">Enviar</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+```
+
+![assets/37.png](assets/37.png)
+
+para terminar el proyecto falta realizar las respectivas validaciones de campos, para hacer esto hay que configurar el metodo `store` en el archivo **UserController.php**
+
+lo que se hace es que se establece una validacion y esta validacion contiene varias reglas.
+
+1. Que `'name'` sea requerido
+
+2. Que el email sea requerido, sea de tipo email y que sea unico en la tabla de usuarios a traves del atributo `'unique'`
+
+3. Que el password sea requerido, y minimo contenga 8 caracteres
+
+```
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => ['required'],
+            'email' => ['required', 'email', 'unique:users'],
+            'password' => ['required', 'min:8'],
+        ])
+
+        User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => $request->password,
+        ]);
+
+        return back();
+    }
+```
+
+Por ultimo tambien se le debe dar informacion al usuario sobre los campos requeridos a traves de mensajes de errores apoyado de una clase Bootstrap  y logica que proporciona el framework laravel
+
+abrir nuevamente **index.blade.php** y modificar lo siguiente 
+
+lo primero es configura la logica para que al digitar uno de los campos del formulario, se valide si se esta completando el campo o no, de lo contrario se debe informar 
+
+```
+                <div class="card border-0 shadow">
+                    <div class="card-body">
+                        @if($errors->any())
+                        <div class="alet alert-danger">
+                            @foreach($errors->all() as $error)
+                            - {{ $error }}
+                            @endforeach
+                        </div>
+                        @endif
+```
+
+Lo segundo que hay que hacer es que en cada uno de los campos se agregue el atributo `value="{{ old('name') }}"` para que se guarden los campos digitados y no se tenga que volver a repetir el proceso de digitar un campo
+
+```
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>Laravel</title>
+
+        <!-- Fonts -->
+        <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+    </head>
+    <body>
+        <div class="container">
+        <div class="row">
+            <div class="col-sm-8 mx-auto">
+
+                <div class="card border-0 shadow">
+                    <div class="card-body">
+                        @if($errors->any())
+                        <div class="alet alert-danger">
+                            @foreach($errors->all() as $error)
+                            - {{ $error }} <br>
+                            @endforeach
+                        </div>
+                        @endif
+
+                        <form action="{{ route('users.store') }}" method="POST" >
+                            <div class="form-row">
+                                <div class="col-sm-3">
+                                    <input type="text" name="name" class="form-control" placeholder="Nombre" value="{{ old('name') }}">
+                                </div>
+                                <div class="col-sm-4">
+                                    <input type="text" name="email" class="form-control" placeholder="Email" value="{{ old('email') }}">
+                                </div>
+                                <div class="col-sm-3">
+                                    <input type="password" name="password" class="form-control" placeholder="Contraseña" >
+                                </div>
+                                <div class="col-auto">
+                                    @csrf
+                                    <button type="submit" class="btn btn-primary">Enviar</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <table class="table">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>&nbsp;</th>
+                </tr>
+                </thead>
+                <tbody>
+                    @foreach($users as $user)
+                    <tr>
+                        <td>{{ $user->id }}</td>
+                        <td>{{ $user->name }}</td>
+                        <td>{{ $user->email }}</td>
+                        <td>
+                            <form action="{{ route('users.destroy', $user) }}" method="POST">
+                                @method('DELETE')
+                                @csrf
+                                <input 
+                                type="submit" 
+                                value="Eliminar" 
+                                class="btn btn-sm btn-danger"
+                                onclick="return confirm('¿Desea eliminar... ?')">
+                            </form>
+                        </td> 
+                    </tr>
+                    @endforeach()
+                </tbody>
+                </table>
+            </div>
+        </div>
+        </div>
+    </body>
+</html>
+
+```
+
+Al recargar el navegador se puede probar cada uno de los campos 
+
+![assets/38.png](assets/38.png)
+
+En este caso hizo falta colocar la contraseña y se esta informando a traves de la plantilla que el campo es requerido.
+
+A continuacion se va a agregar otro usuario con otro email y una contraseña proporcionada
+
+![assets/39.png](assets/39.png)
+
+Pero existe un problema y es que al ver la contraseña en la base de datos no esta encriptada
+
+![assets/40.png](assets/40.png)
+
+Para encriptarla Se debe abrir **UserController.php** y colocar el metodo de encriptacion que proporciona laravel con `bcrypt()` y se modifica en el metodo `store` especificamente en el campo del password
+
+```
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => ['required'],
+            'email' => ['required', 'email', 'unique:users'],
+            'password' => ['required', 'min:8'],
+        ]);
+
+        User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => bcrypt($request->password),
+        ]);
+
+        return back();
+    }
+```
+
+realizando esta modificacion se elimina al usuario jeisson y nuevamente se crea una contraseña en la plantilla
+
+![assets/41.png](assets/41.png)
+
